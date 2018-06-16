@@ -1,8 +1,10 @@
 const Discord = require("discord.js");
 const client = new Discord.Client();
 const sql = require("sqlite");
-const prefix = "!"
+const prefix = "!";
 const util = require("util");
+const existsLink = require("exists-link");
+const isImage = require('is-image');
 
 function clean(text) {
   if (typeof(text) === "string")
@@ -10,10 +12,17 @@ function clean(text) {
   else
       return text;
 }
-
+function checkText(txtData){
+    let exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
+    txtData = txtData.match(exp);
+    if(!txtData) return;
+    txtData = txtData.filter(word=>isImage(word));
+    return txtData;
+}
 client.on("ready", () => {
   console.log("Bot is online!");
   client.user.setPresence({ game: { name: "-help | "+client.guilds.size+" guilds"}});
+  checkText("hello ther https://cdn.discordapp.com/attachments/343887031434346500/457617393833738262/GMod_Logo.png");
 });
 
 client.on("messageReactionAdd", (messageReaction, user) => {
@@ -26,15 +35,23 @@ client.on("messageReactionAdd", (messageReaction, user) => {
         if (!hoc) {
             user.send("I see that you tried to cringe a message, please run -setup for me to do this. Thanks!");
         }
-        let Attachment = (messageReaction.message.attachments).array()
+        let text = messageReaction.message.content;
+        let Attachment = (messageReaction.message.attachments).array();
         if (!guy.hasPermission("MANAGE_GUILD") && !guy.roles.has(role.id)) return;
+        var image;
+        let links = checkText(text);
+        if(Attachment[0]) {
+            image = Attachment[0].url;
+        } else if(links[0]){
+            image = links[0];
+        }
         const embed = {
-            "description": messageReaction.message.content,
+            "description": text,
             "url": "https://discordapp.com",
             "color": 5141678,
             "timestamp": new Date(),
             "image": {
-                "url": Attachment[0].url
+                "url": image
             },
             "author": {
                 "name": gmem.user.tag,
@@ -170,4 +187,4 @@ client.on("message", async message => {
             return
     }
 });
-client.login("");
+client.login("NDU3NDA1MzI2MTAzMjgxNjY2.DgbC0A.Df906akhjDqT0i_2VisUtWCjrrw");
