@@ -13,33 +13,38 @@ function clean(text) {
 
 client.on("ready", () => {
   console.log("Bot is online!");
-  client.user.setPresence({ game: { name: "-help"}});
+  client.user.setPresence({ game: { name: "-help | "+client.guilds.size+" guilds"}});
 });
 
 client.on("messageReactionAdd", (messageReaction, user) => {
     try {
         if (messageReaction._emoji.reaction.emoji.name !== "🤦") return;
-        let gmem = messageReaction.message.member
-        if (!gmem.hasPermission("MANAGE_SERVER") && !gmem.guild.roles.find("name", "Hall-of-Cringe")) return;
+        let gmem = messageReaction.message.member;
+        let guy = messageReaction.message.member.guild.members.find("id", user.id);
+        let role = gmem.guild.roles.find("name", "Hall-of-Cringe");
         let hoc = gmem.guild.channels.find("name", "hall-of-cringe");
         if (!hoc) {
             user.send("I see that you tried to cringe a message, please run -setup for me to do this. Thanks!");
         }
+        let Attachment = (messageReaction.message.attachments).array()
+        if (!guy.hasPermission("MANAGE_GUILD") && !guy.roles.has(role.id)) return;
         const embed = {
-            "title": `${user}`,
             "description": messageReaction.message.content,
             "url": "https://discordapp.com",
             "color": 5141678,
             "timestamp": new Date(),
+            "image": {
+                "url": Attachment[0].url
+            },
             "author": {
-                "name": gmem.displayName,
+                "name": gmem.user.tag,
                 "url": "",
-                "icon_url": user.avatarURL
+                "icon_url": gmem.user.avatarURL
             }
         };
         return hoc.send({embed});
     } catch(e){
-        message.channel.send("Error has occurred - "+e);
+        console.log("Error has occurred - "+e);
     }
 });
 
@@ -81,45 +86,88 @@ client.on("message", async message => {
         try {
             if (!message.guild.me.hasPermission("ADMINISTRATOR")) return message.reply("sorry but I do not have enough permissions. Please enable ADMINISTRATOR permission for me.")
             let g1 = message.guild.channels.find("name", "hall-of-cringe");
-            console.log(args);
+            let g2 = message.guild.roles.find("name", "Hall-of-Cringe");
             if (g1) {
-                console.log("a")
                 if (args[1] === '--override') {
-                    console.log("ok");
                     g1.delete();
                 } else {
                     return message.channel.send("The channel already exists, running this command could cause the channel to be reset. Do -setup --override to force remake it.");
                 }
             }
+            if(g2){
+                if(args[1] === '--override'){
+                    g2.delete();
+                } else {
+                    return message.channel.send("The role already exists, running this command could cause the role members to be reset. Do -setup --override to force remake it.");
+                }
+            }
+            message.guild.createRole({
+                name: "Hall-of-Cringe"
+            });
             let everyone = message.guild.defaultRole;
             return message.guild.createChannel("hall-of-cringe", 'text', [{
                 id: message.guild.me,
                 allow: ['SEND_MESSAGES']
             }])
-                .then(d => {
+                .then(async function(d) {
+                    let role = message.guild.roles.find("name", "Hall-of-Cringe");
+                    console.log(role.id);
                     d.overwritePermissions(everyone, {
-                        SEND_MESSAGES: false
-                    }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"))
-                }).then(d => {
-                    let g2 = message.guild.channels.find("name", "hall-of-cringe");
-                    const embed = {
-                        "title": "Welcome to Hall of Cringe",
-                        "description": "People with either the Hall Of Cringe Manager role or Manage Server can cringe a message by reacting with :face_palm:",
-                        "url": "https://discordapp.com",
-                        "color": 5141678,
-                        "timestamp": new Date(),
-                        "image": {
-                            "url": "https://cdn.discordapp.com/attachments/445804907249795073/457432484309630977/hallofcringe.png"
+                        'SEND_MESSAGES': false,
+                    }).catch(e => message.channel.send("[ID#1] An error has occurred - ```" + e + "```"));
+                    d.overwritePermissions(role.id, {
+                        'SEND_MESSAGES': true,
+                        'MANAGE_MESSAGES': true,
+                    }).catch(e => message.channel.send("[ID#2] An error has occurred - ```" + e + "```"));
+                }).then(async d => {
+                        var g2 = await message.guild.channels.find("name", "hall-of-cringe");
+                        if(!g2){
+                            var g2 = await message.guild.channels.find("name", "hall-of-cringe");
                         }
-                    };
-                    return g2.send({embed});
-                }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"));
+                        const embed = {
+                            "title": "Welcome to Hall of Cringe",
+                            "description": "People with either the Hall Of Cringe Manager role or Manage Server can cringe a message by reacting with :face_palm:",
+                            "url": "https://discordapp.com",
+                            "color": 5141678,
+                            "timestamp": new Date(),
+                            "image": {
+                                "url": "https://cdn.discordapp.com/attachments/445804907249795073/457432484309630977/hallofcringe.png"
+                            }
+                        };
+                        return g2.send({embed});
+                    }).catch(e => message.channel.send("[ID#3] An error has occurred - ```" + e + "```"));
             return;
         } catch(e){
             return message.channel.send("An error occurred - "+e);
         }
+    } else if(s === "help") {
+        const embed = {
+            "title": "Welcome to Hall of Cringe",
+            "description":"To cringe a message use -setup and react a message with :face_palm: - you must have manage guild or the role Hall-of-Cringe",
+            "color": 5141678,
+            "timestamp": new Date(),
+            "fields": [
+                {
+                    "name": "-help",
+                    "value": "Help commands"
+                },
+                {
+                    "name": "-setup",
+                    "value": "Sets up the bot"
+                },
+                {
+                    "name": "-ping",
+                    "value": "Pings the bot"
+                },
+                {
+                    "name": "🤦",
+                    "value": "React with this to cringe a message"
+                }
+            ]
+        };
+        return message.channel.send({embed});
     } else {
-        return;
+            return
     }
 });
-client.login(process.env.BOT_TOKEN);
+client.login("");
