@@ -17,9 +17,30 @@ client.on("ready", () => {
 });
 
 client.on("messageReactionAdd", (messageReaction, user) => {
-    if(messageReaction._emoji.reaction.emoji.name !== "🤦") return;
-    if(!messageReaction.message.member.hasPermission("MANAGE_SERVER") && !messageReaction.message.member.guild.roles.find("name", "Hall-of-Cringe")) return;
-    console.log("ok")
+    try {
+        if (messageReaction._emoji.reaction.emoji.name !== "🤦") return;
+        let gmem = messageReaction.message.member
+        if (!gmem.hasPermission("MANAGE_SERVER") && !gmem.guild.roles.find("name", "Hall-of-Cringe")) return;
+        let hoc = gmem.guild.channels.find("name", "hall-of-cringe");
+        if (!hoc) {
+            user.send("I see that you tried to cringe a message, please run -setup for me to do this. Thanks!");
+        }
+        const embed = {
+            "title": `${user}`,
+            "description": messageReaction.message.content,
+            "url": "https://discordapp.com",
+            "color": 5141678,
+            "timestamp": new Date(),
+            "author": {
+                "name": gmem.displayName,
+                "url": "",
+                "icon_url": user.avatarURL
+            }
+        };
+        return hoc.send({embed});
+    } catch(e){
+        message.channel.send("Error has occurred - "+e);
+    }
 });
 
 client.on("message", async message => {
@@ -57,38 +78,48 @@ client.on("message", async message => {
         const m = await message.channel.send(".");
         m.edit(`Ping is ${m.createdTimestamp - message.createdTimestamp}ms. API Ping is ${Math.round(client.ping)}ms`);
     } else if (s === "setup") {
-        if (!message.guild.me.hasPermission("ADMINISTRATOR")) return message.reply("sorry but I do not have enough permissions. Please enable ADMINISTRATOR permission for me.")
-        let g1 = message.guild.channels.find("name", "hall-of-cringe");
-        if (g1) {
-            g1.delete()
+        try {
+            if (!message.guild.me.hasPermission("ADMINISTRATOR")) return message.reply("sorry but I do not have enough permissions. Please enable ADMINISTRATOR permission for me.")
+            let g1 = message.guild.channels.find("name", "hall-of-cringe");
+            console.log(args);
+            if (g1) {
+                console.log("a")
+                if (args[1] === '--override') {
+                    console.log("ok");
+                    g1.delete();
+                } else {
+                    return message.channel.send("The channel already exists, running this command could cause the channel to be reset. Do -setup --override to force remake it.");
+                }
+            }
+            let everyone = message.guild.defaultRole;
+            return message.guild.createChannel("hall-of-cringe", 'text', [{
+                id: message.guild.me,
+                allow: ['SEND_MESSAGES']
+            }])
+                .then(d => {
+                    d.overwritePermissions(everyone, {
+                        SEND_MESSAGES: false
+                    }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"))
+                }).then(d => {
+                    let g2 = message.guild.channels.find("name", "hall-of-cringe");
+                    const embed = {
+                        "title": "Welcome to Hall of Cringe",
+                        "description": "People with either the Hall Of Cringe Manager role or Manage Server can cringe a message by reacting with :face_palm:",
+                        "url": "https://discordapp.com",
+                        "color": 5141678,
+                        "timestamp": new Date(),
+                        "image": {
+                            "url": "https://cdn.discordapp.com/attachments/445804907249795073/457432484309630977/hallofcringe.png"
+                        }
+                    };
+                    return g2.send({embed});
+                }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"));
+            return;
+        } catch(e){
+            return message.channel.send("An error occurred - "+e);
         }
-        let everyone = message.guild.defaultRole;
-        return message.guild.createChannel("hall-of-cringe", 'text', [{
-            id: message.guild.me,
-            allow: ['SEND_MESSAGES']
-        }])
-            .then(d => {
-                d.overwritePermissions(everyone, {
-                    SEND_MESSAGES: false
-                }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"))
-            }).then(d=> {
-                let g2 = message.guild.channels.find("name", "hall-of-cringe");
-                const embed = {
-				    "title": "Welcome to Hall of Cringe",
-				    "description": "People with either the Hall Of Cringe Manager role or Manage Server can cringe a message by reacting with :face_palm:",
-				    "url": "https://discordapp.com",
-				    "color": 5141678,
-				    "timestamp": new Date(),
-				    "image": {
-				        "url": "https://cdn.discordapp.com/attachments/445804907249795073/457432484309630977/hallofcringe.png"
-				    }
-				};
-                console.log(embed);
-                 return g2.send({ embed });
-            }).catch(e => message.channel.send("An error has occurred - ```" + e + "```"));
-        return;
     } else {
         return;
     }
 });
-client.login("");
+client.login(process.env.BOT_TOKEN);
