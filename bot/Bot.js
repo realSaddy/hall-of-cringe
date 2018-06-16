@@ -187,4 +187,4 @@ client.on("message", async message => {
             return
     }
 });
-client.login("NDU3NDA1MzI2MTAzMjgxNjY2.DgbC0A.Df906akhjDqT0i_2VisUtWCjrrw");
+client.login("shhhh no token here (token has been reset)");
