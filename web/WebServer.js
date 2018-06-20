@@ -1,8 +1,11 @@
 const http = require('http');
-  
-const server = http.createServer((req, res) => {
-  res.writeHead(200);
-}).listen(3000);
+const app = require("express")()
+
+app.get("/", (request, response) => {
+  console.log(Date.now() + " Ping Received");
+  response.sendStatus(200);
+});
+app.listen(process.env.PORT);
 
 console.log("WebServer is online!");
 
