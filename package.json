@@ -1,7 +1,7 @@
 {
-  "name": "trail-peaks",
+  "name": "hall-of-cringe",
   "version": "0.0.1",
-  "description": "A discord bot for the Trial Peaks discord server",
+  "description": "hall of cringe",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -13,7 +13,8 @@
     "is-image": "^2.0.0",
     "sqlite": "^2.9.1",
     "url-exists": "^1.0.3",
-    "util": "^0.10.3"
+    "util": "^0.10.3",
+    "express": "^4.16.3"
   },
   "engines": {
     "node": "9.x"
