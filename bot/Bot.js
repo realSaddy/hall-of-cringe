@@ -12,7 +12,7 @@ function clean(text) {
   else
       return text;
 }
-function checkText(txtData){
+async function checkText(txtData){
     let exp = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     txtData = txtData.match(exp);
     if(!txtData) return;
@@ -25,7 +25,7 @@ client.on("ready", () => {
   checkText("hello ther https://cdn.discordapp.com/attachments/343887031434346500/457617393833738262/GMod_Logo.png");
 });
 
-client.on("messageReactionAdd", (messageReaction, user) => {
+client.on("messageReactionAdd", async (messageReaction, user) => {
     try {
         if (messageReaction._emoji.reaction.emoji.name !== "🤦") return;
         let gmem = messageReaction.message.member;
@@ -39,11 +39,13 @@ client.on("messageReactionAdd", (messageReaction, user) => {
         let Attachment = (messageReaction.message.attachments).array();
         if (!guy.hasPermission("MANAGE_GUILD") && !guy.roles.has(role.id)) return;
         var image;
-        let links = checkText(text);
+        let links = await checkText(text);
         if(Attachment[0]) {
             image = Attachment[0].url;
-        } else if(links[0]){
+        } else if(links){
             image = links[0];
+        } else {
+          image = ""
         }
         const embed = {
             "description": text,
@@ -61,7 +63,7 @@ client.on("messageReactionAdd", (messageReaction, user) => {
         };
         return hoc.send({embed});
     } catch(e){
-        console.log("Error has occurred - "+e);
+        console.log("[ID#0]Error has occurred - "+e);
     }
 });
 
@@ -128,7 +130,6 @@ client.on("message", async message => {
             }])
                 .then(async function(d) {
                     let role = message.guild.roles.find("name", "Hall-of-Cringe");
-                    console.log(role.id);
                     d.overwritePermissions(everyone, {
                         'SEND_MESSAGES': false,
                     }).catch(e => message.channel.send("[ID#1] An error has occurred - ```" + e + "```"));
@@ -187,4 +188,4 @@ client.on("message", async message => {
             return
     }
 });
-client.login("shhhh no token here (token has been reset)");
+client.login(process.env.BOT_TOKEN);
