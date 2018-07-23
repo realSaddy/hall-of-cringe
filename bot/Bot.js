@@ -104,6 +104,7 @@ client.on("message", async message => {
     } else if (s === "setup") {
         try {
             if (!message.guild.me.hasPermission("ADMINISTRATOR")) return message.reply("sorry but I do not have enough permissions. Please enable ADMINISTRATOR permission for me.")
+            if (!message.member.hasPermission("ADMINISTRATOR")) return message.reply("You don't have enough permissions smh")
             let g1 = message.guild.channels.find("name", "hall-of-cringe");
             let g2 = message.guild.roles.find("name", "Hall-of-Cringe");
             if (g1) {
